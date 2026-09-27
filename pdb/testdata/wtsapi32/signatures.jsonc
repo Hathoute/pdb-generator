@@ -1,0 +1,136 @@
+{
+  "signatures": {
+    "WTSQueryUserToken": {
+      "library": "wtsapi32.dll",
+      "windows": "48 89 5C 24 18 48 89 74 24 20 57 48 81 EC 90 00 00 00 48 8B 05 77 2A 02 00 48 33 C4 48 89 84 24 80 00 00 00 33 DB 48 8B FA 89 5C 24 40 8B F1 48"
+    },
+    "WTSEnumerateProcessesA": {
+      "library": "wtsapi32.dll",
+      "windows": "4C 8B DC 49 89 5B 08 49 89 6B 10 49 89 73 18 4D 89 4B 20 57 41 54 41 55 41 56 41 57 48 83 EC 40 45 33 E4 49 8D 43 CC 4D 8B F9 4D 89 63 D0 4D 8D"
+    },
+    "WTSEnumerateProcessesW": {
+      "library": "wtsapi32.dll",
+      "windows": "48 89 5C 24 18 48 89 74 24 20 55 57 41 54 41 56 41 57 48 8B EC 48 83 EC 30 33 DB 4D 8B E1 48 89 5D F8 48 8B F9 89 5D 38 48 89 5D F0 85 D2 0F 85"
+    },
+    "WTSEnumerateProcessesExA": {
+      "library": "wtsapi32.dll",
+      "windows": "48 89 5C 24 08 48 89 74 24 18 48 89 7C 24 20 41 56 48 83 EC 30 33 FF 49 8B F1 48 89 7C 24 48 48 8B DA 48 85 D2 74 63 4D 85 C9 74 5E 4C 8B 74 24"
+    },
+    "ConvertProcessInfoFromUnicodeToAnsi": {
+      "library": "wtsapi32.dll",
+      "windows": "48 89 5C 24 08 4C 89 44 24 18 48 89 54 24 10 55 56 57 41 54 41 55 41 56 41 57 48 83 EC 40 45 33 F6 4D 8B E9 48 8B F2 48 8B D9 41 8B EE 48 85 D2"
+    },
+    "WTSEnumerateProcessesExW": {
+      "library": "wtsapi32.dll",
+      "windows": "4C 8B DC 4D 89 4B 20 49 89 53 10 55 53 41 54 41 56 48 8B EC 48 83 EC 78 49 89 73 08 48 8B D9 33 F6 49 89 7B D8 4D 89 6B D0 48 8B FA 4D 89 7B C8"
+    },
+    "WTSQuerySessionInformationA": {
+      "library": "wtsapi32.dll",
+      "windows": "4C 8B DC 49 89 5B 08 49 89 73 10 49 89 7B 18 41 56 48 83 EC 40 33 FF 49 63 D8 49 89 7B E8 4D 8B F1 89 7C 24 68 4D 85 C9 0F 84 11 01 00 00 48 8B"
+    },
+    "WTSQuerySessionInformationW": {
+      "library": "wtsapi32.dll",
+      "windows": "48 89 5C 24 18 55 56 57 41 54 41 55 41 56 41 57 48 8D 6C 24 E1 48 81 EC E0 00 00 00 48 8B 05 7D 17 02 00 48 33 C4 48 89 45 17 48 8B 75 7F 45 33"
+    },
+    "ConvertSessionInfoExToAnsi": {
+      "library": "wtsapi32.dll",
+      "windows": "48 89 5C 24 08 48 89 74 24 10 48 89 7C 24 18 41 56 48 83 EC 30 4C 8B F2 C7 44 24 58 00 00 00 00 BA A0 00 00 00 48 8B F9 49 8B F0 8D 4A A0 48 FF"
+    },
+    "WTSFreeMemoryExW": {
+      "library": "wtsapi32.dll",
+      "windows": "40 56 48 83 EC 20 48 8B F2 48 85 D2 75 18 8D 4A 57 48 FF 15 28 8D 01 00 0F 1F 44 00 00 33 C0 48 83 C4 20 5E C3 CC 48 89 5C 24 30 48 89 7C 24 38"
+    },
+    "WTSEnumerateSessionsW": {
+      "library": "wtsapi32.dll",
+      "windows": "48 89 5C 24 20 56 57 41 56 48 83 EC 30 45 33 F6 49 8B F1 4C 89 74 24 20 44 89 74 24 58 85 D2 0F 85 C4 01 00 00 41 83 F8 01 0F 85 BA 01 00 00 48"
+    },
+    "WTSEnumerateSessionsExW": {
+      "library": "wtsapi32.dll",
+      "windows": "48 8B C4 55 56 57 48 83 EC 40 48 89 58 08 4C 89 60 18 45 33 E4 4C 89 70 E0 41 8B EC 4C 89 78 D8 4D 8B F9 4C 89 60 C8 41 8B F4 44 89 60 10 41 8B"
+    },
+    "_CopyExSessionEnumData": {
+      "library": "wtsapi32.dll",
+      "windows": "48 89 5C 24 08 48 89 6C 24 10 48 89 74 24 18 48 89 7C 24 20 41 54 41 56 41 57 48 83 EC 20 8B 41 08 48 8D 72 10 89 02 48 8B E9 48 63 41 0C 48 8D"
+    },
+    "_CopyStringW": {
+      "library": "wtsapi32.dll",
+      "windows": "48 89 5C 24 18 4C 89 74 24 20 41 57 48 83 EC 20 4D 8B F8 4C 8B F2 48 8B D9 48 85 C9 74 7B 48 89 74 24 30 48 C7 C0 FF FF FF FF 48 89 7C 24 38 90"
+    },
+    "CollectClientInfo": {
+      "library": "wtsapi32.dll",
+      "windows": "40 56 57 41 56 48 83 EC 40 48 8B 05 40 00 02 00 48 33 C4 48 89 44 24 38 49 8B F0 4C 8B F2 48 8B F9 48 85 D2 0F 84 87 02 00 00 4D 85 C0 0F 84 7E"
+    },
+    "StringCchCopyW": {
+      "library": "wtsapi32.dll",
+      "windows": "48 8D 42 FF 41 B9 FE FF FF 7F 49 3B C1 77 46 4C 2B CA 4C 2B C1 49 8D 04 11 48 85 C0 74 17 41 0F B7 04 08 66 85 C0 74 0D 66 89 01 48 83 C1 02 48"
+    },
+    "_CopyData": {
+      "library": "wtsapi32.dll",
+      "windows": "48 89 5C 24 08 48 89 6C 24 10 48 89 74 24 18 48 89 7C 24 20 41 56 48 83 EC 20 8B FA 4C 8B F1 8B D2 B9 40 00 00 00 49 8B D9 49 8B F0 48 FF 15 A5"
+    },
+    "CollectSessionInfoEx": {
+      "library": "wtsapi32.dll",
+      "windows": "48 89 5C 24 08 48 89 74 24 10 57 48 83 EC 20 49 8B F8 48 8B F2 48 8B D9 48 85 C9 0F 84 DF 01 00 00 4D 85 C0 0F 84 D6 01 00 00 BA E8 00 00 00 B9"
+    },
+    "WTSEnumerateSessionsA": {
+      "library": "wtsapi32.dll",
+      "windows": "48 8B C4 48 89 58 08 48 89 68 18 48 89 70 20 57 41 54 41 55 41 56 41 57 48 83 EC 40 33 FF 4D 8B E9 48 89 78 D0 89 78 C8 89 78 10 85 D2 0F 85 93"
+    },
+    "_FreeExSessionEnumData": {
+      "library": "wtsapi32.dll",
+      "windows": "48 85 C9 0F 84 94 00 00 00 56 48 83 EC 20 48 8B F1 85 D2 74 74 48 89 5C 24 30 48 8D 59 18 48 89 7C 24 38 8B FA 48 8B 4B F8 48 85 C9 74 0C 48 FF"
+    },
+    "StringCchLengthW": {
+      "library": "wtsapi32.dll",
+      "windows": "48 85 C9 74 4B 48 8B C2 45 33 C9 0F 1F 44 00 00 66 44 39 09 74 12 48 83 C1 02 48 83 E8 01 75 F0 41 B9 57 00 07 80 EB 05 48 85 C0 74 F3 4D 85 C0"
+    },
+    "WTSFreeMemory": {
+      "library": "wtsapi32.dll",
+      "windows": "48 FF 25 A9 78 01 00 CC CC CC CC CC CC CC CC CC CC CC CC CC CC CC CC CC CC CC CC CC CC CC CC CC"
+    },
+    "WTSRegisterSessionNotification": {
+      "library": "wtsapi32.dll",
+      "windows": "48 89 5C 24 08 57 48 83 EC 20 8B FA C7 44 24 40 00 00 00 00 48 8B D9 48 FF 15 42 24 02 00 0F 1F 44 00 00 85 C0 75 1F B9 57 00 00 00 48 FF 15 FD"
+    },
+    "__delayLoadHelper2": {
+      "library": "wtsapi32.dll",
+      "windows": "48 83 EC 38 8B 05 96 96 01 00 4C 8B 0D 47 77 01 00 4C 8B 05 90 96 01 00 89 44 24 28 48 89 54 24 20 48 8B D1 48 8D 0D 75 B1 FF FF 48 FF 15 36 77"
+    },
+    "WTSUnRegisterSessionNotification": {
+      "library": "wtsapi32.dll",
+      "windows": "40 53 48 83 EC 20 48 8B D9 C7 44 24 38 00 00 00 00 48 FF 15 58 23 02 00 0F 1F 44 00 00 85 C0 74 3E 48 8D 54 24 38 48 8B CB 48 FF 15 38 23 02 00"
+    },
+    "RegisterUsertokenForNoWinlogon": {
+      "library": "wtsapi32.dll",
+      "windows": "48 83 EC 28 B9 32 00 00 00 48 FF 15 A0 76 01 00 0F 1F 44 00 00 33 C0 48 83 C4 28 C3 CC CC CC CC CC CC CC CC CC CC CC CC CC CC CC CC CC CC CC CC"
+    },
+    "WTSSetUserConfigW": {
+      "library": "wtsapi32.dll",
+      "windows": "4C 8B DC 55 41 57 49 8D AB 78 F6 FF FF 48 81 EC 78 0A 00 00 48 8B 05 F5 F3 01 00 48 33 C4 48 89 85 40 09 00 00 49 89 5B E8 48 8B D9 49 89 73 E0"
+    },
+    "IsInteractiveUserSession": {
+      "library": "wtsapi32.dll",
+      "windows": "33 C0 85 C9 0F 95 C0 C3 CC CC CC CC CC CC CC CC"
+    },
+    "WTSWaitSystemEvent": {
+      "library": "wtsapi32.dll",
+      "windows": "48 89 5C 24 08 57 48 83 EC 20 49 8B F8 33 DB 89 5C 24 40 44 8B C2 4C 8B C9 48 85 FF 0F 84 CA 00 00 00 8B CA 83 E1 01 8B D1 83 CA 02 41 F6 C0 02"
+    },
+    "WTSRegisterSessionNotificationExStub": {
+      "library": "wtsapi32.dll",
+      "windows": "48 FF 25 E1 1B 02 00 CC CC CC CC CC CC CC CC CC CC CC CC CC CC CC CC CC CC CC CC CC CC CC CC CC"
+    },
+    "_WTSVirtualChannelOpen": {
+      "library": "wtsapi32.dll",
+      "windows": "48 89 5C 24 08 48 89 6C 24 10 48 89 74 24 18 57 48 83 EC 20 41 81 E1 3F FF FF FF 49 8B F8 8B F2 48 8B E9 48 FF 15 AE 1A 02 00 0F 1F 44 00 00 48"
+    },
+    "WTSUnRegisterSessionNotificationExStub": {
+      "library": "wtsapi32.dll",
+      "windows": "48 FF 25 39 1B 02 00 CC CC CC CC CC CC CC CC CC CC CC CC CC CC CC CC CC CC CC CC CC CC CC CC CC"
+    },
+    "WTSVirtualChannelOpenEx": {
+      "library": "wtsapi32.dll",
+      "windows": "45 8B C8 4C 8B C2 8B D1 33 C9 E9 31 FF FF FF CC CC CC CC CC CC CC CC CC CC CC CC CC CC CC CC CC"
+    }
+  }
+}

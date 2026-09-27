@@ -1,0 +1,140 @@
+{
+  "dll": "wtsapi32.dll",
+  "pdb_url": "https://msdl.microsoft.com/download/symbols/wtsapi32.pdb/E1B14D967968BCE67CEC223811A868B01/wtsapi32.pdb",
+  "guid": "e1b14d96-7968-bce6-7cec-223811a868b0",
+  "age": 1,
+  "functions": [
+    {
+      "name": "WTSQueryUserToken",
+      "rva": 6384
+    },
+    {
+      "name": "WTSEnumerateProcessesA",
+      "rva": 6912
+    },
+    {
+      "name": "WTSEnumerateProcessesW",
+      "rva": 7840
+    },
+    {
+      "name": "WTSEnumerateProcessesExA",
+      "rva": 8800
+    },
+    {
+      "name": "ConvertProcessInfoFromUnicodeToAnsi",
+      "rva": 8992
+    },
+    {
+      "name": "WTSEnumerateProcessesExW",
+      "rva": 9664
+    },
+    {
+      "name": "WTSQuerySessionInformationA",
+      "rva": 10688
+    },
+    {
+      "name": "WTSQuerySessionInformationW",
+      "rva": 11232
+    },
+    {
+      "name": "ConvertSessionInfoExToAnsi",
+      "rva": 14128
+    },
+    {
+      "name": "WTSFreeMemoryExW",
+      "rva": 14512
+    },
+    {
+      "name": "WTSEnumerateSessionsW",
+      "rva": 14864
+    },
+    {
+      "name": "WTSEnumerateSessionsExW",
+      "rva": 15472
+    },
+    {
+      "name": "_CopyExSessionEnumData",
+      "rva": 15872
+    },
+    {
+      "name": "_CopyStringW",
+      "rva": 17008
+    },
+    {
+      "name": "CollectClientInfo",
+      "rva": 17200
+    },
+    {
+      "name": "StringCchCopyW",
+      "rva": 17920
+    },
+    {
+      "name": "_CopyData",
+      "rva": 18032
+    },
+    {
+      "name": "CollectSessionInfoEx",
+      "rva": 18160
+    },
+    {
+      "name": "WTSEnumerateSessionsA",
+      "rva": 18704
+    },
+    {
+      "name": "_FreeExSessionEnumData",
+      "rva": 19552
+    },
+    {
+      "name": "StringCchLengthW",
+      "rva": 19760
+    },
+    {
+      "name": "WTSFreeMemory",
+      "rva": 19872
+    },
+    {
+      "name": "WTSRegisterSessionNotification",
+      "rva": 19904
+    },
+    {
+      "name": "__delayLoadHelper2",
+      "rva": 20064
+    },
+    {
+      "name": "WTSUnRegisterSessionNotification",
+      "rva": 20144
+    },
+    {
+      "name": "RegisterUsertokenForNoWinlogon",
+      "rva": 20288
+    },
+    {
+      "name": "WTSSetUserConfigW",
+      "rva": 20336
+    },
+    {
+      "name": "IsInteractiveUserSession",
+      "rva": 21536
+    },
+    {
+      "name": "WTSWaitSystemEvent",
+      "rva": 21552
+    },
+    {
+      "name": "WTSRegisterSessionNotificationExStub",
+      "rva": 21904
+    },
+    {
+      "name": "_WTSVirtualChannelOpen",
+      "rva": 21936
+    },
+    {
+      "name": "WTSUnRegisterSessionNotificationExStub",
+      "rva": 22096
+    },
+    {
+      "name": "WTSVirtualChannelOpenEx",
+      "rva": 22128
+    }
+  ]
+}
