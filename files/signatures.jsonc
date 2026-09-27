@@ -1,5 +1,5 @@
 {
-  "signatures": {
+  "functions": {
     "UTIL_Remove": {
       "library": "server.dll",
       "windows": "48 85 C9 74 ? 48 8B D1 48 8B 0D"
@@ -33,10 +33,6 @@
     "CBaseEntity::SetGravityScale": {
       "library": "server.dll",
       "windows": "48 89 5C 24 ?? 57 48 83 EC ?? F3 0F 10 81 ?? ?? ?? ?? 48 8B F9 0F 29 74 24 ?? 0F 28 F1 0F 2E C6 7A ?? 74"
-    },
-    "g_GameEventManager": {
-      "library": "server.dll",
-      "windows": "FF 15 ?? ?? ?? ?? 48 8B 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? E8"
     },
     "GetVDataInstanceByName": {
       "library": "server.dll",
@@ -238,6 +234,26 @@
     "SubclassRegistry::GlobalRef": {
       "library": "server.dll",
       "windows": "48 8B 0D ?? ?? ?? ?? BB ?? ?? ?? ?? 8B D3 4D 8B C7"
+    }
+  },
+  "labels": {
+    "g_pEntityList": {
+      "library": "server.dll",
+      "windows": "4C 8B 05 ?? ?? ?? ?? 4D 85 C0 74 ?? 83 F8 FE 74 ?? 8B C8 81 E1 FF 7F 00 00",
+      "mode": "rip",
+      "rip_offset": 3
+    },
+    "g_pSvCheatsCvar": {
+      "library": "server.dll",
+      "windows": "48 8B 05 ?? ?? ?? ?? 48 8B FA 80 78 58 00 0F 84 ?? ?? ?? ?? 48 89 B4 24 80 00 00 00",
+      "mode": "rip",
+      "rip_offset": 3
+    },
+    "CCitadel_Projectile_Viscous_GooGrenade::vftable": {
+      "library": "server.dll",
+      "windows": "48 8D 05 ?? ?? ?? ?? 48 8D 8F 64 08 00 00 48 89 07 E8 ?? ?? ?? ?? 33 F6 48 8D 9F A0 08 00 00",
+      "mode": "rip",
+      "rip_offset": 3
     }
   }
 }
