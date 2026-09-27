@@ -1,0 +1,89 @@
+name: pdb
+
+on:
+  push:
+    branches-ignore: [main]
+  pull_request:
+    branches-ignore: [main]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pdb-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'push' }}
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+
+      - name: Read config.json
+        id: config
+        run: |
+          python - <<'EOF'
+          import json, os
+
+          cfg = json.load(open("config.json", encoding="utf-8"))
+          dll = cfg["dll"]
+          jsonc = cfg["jsonc"]
+          if not os.path.isfile(dll):
+              raise SystemExit(f"config.json: dll not found: {dll}")
+          if not os.path.isfile(jsonc):
+              raise SystemExit(f"config.json: jsonc not found: {jsonc}")
+          with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+              f.write(f"dll={dll}\n")
+              f.write(f"jsonc={jsonc}\n")
+          EOF
+
+      - name: Generate PDB
+        id: gen
+        env:
+          DLL: ${{ steps.config.outputs.dll }}
+          SIG: ${{ steps.config.outputs.jsonc }}
+        run: |
+          mkdir -p dist
+          out="dist/$(basename "${DLL%.*}").pdb"
+          python make_pdb.py --dll "$DLL" --sig "$SIG" --out "$out"
+          echo "pdb=$out" >> "$GITHUB_OUTPUT"
+          echo "dll_name=$(basename "$DLL")" >> "$GITHUB_OUTPUT"
+
+      - name: Hash DLL
+        if: github.event_name == 'push'
+        env:
+          DLL: ${{ steps.config.outputs.dll }}
+        run: |
+          sha256sum "$DLL" | awk '{n = split($2, p, "/"); print $1 "  " p[n]}' > dist/sha256sums.txt
+          cat dist/sha256sums.txt
+
+      - name: Create release
+        if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DLL_NAME: ${{ steps.gen.outputs.dll_name }}
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          ts=$(date -u +"%Y-%m-%d %H-%M")
+          slug=$(printf '%s' "$BRANCH" | tr -c 'A-Za-z0-9._-' '-')
+          tag="${slug}-$(date -u +%Y%m%d-%H%M)"
+          sha=$(awk '{print $1}' dist/sha256sums.txt)
+          {
+            echo "DLL: \`$DLL_NAME\`"
+            echo
+            echo '```'
+            echo "$sha  $DLL_NAME"
+            echo '```'
+          } > body.md
+          gh release create "$tag" \
+            --target "$GITHUB_SHA" \
+            --title "$ts" \
+            --notes-file body.md \
+            dist/*.pdb dist/sha256sums.txt
