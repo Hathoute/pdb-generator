@@ -1,0 +1,5 @@
+{
+  "name": "Deadlock server.dll",
+  "dll": "files/server.dll",
+  "jsonc": "files/signatures.jsonc"
+}
