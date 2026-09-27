@@ -88,5 +88,31 @@ class TestRvaToSection(unittest.TestCase):
         self.assertIsNone(pe.rva_to_section(img, 0x3000))
 
 
+class TestAllScanRegions(unittest.TestCase):
+    def _img(self):
+        return pe.PEImage.parse(
+            build_pe(
+                [
+                    {"name": ".text", "vsize": 0x20, "raw": b"\x48\x8b\xc4\x55" + b"\x90" * 12, "exec": True},
+                    {"name": ".rdata", "vsize": 0x10, "raw": b"\xde\xad\xbe\xef" * 4, "exec": False},
+                    {"name": ".data", "vsize": 0x10, "raw": b"", "exec": False},
+                ]
+            )
+        )
+
+    def test_includes_non_exec_sections_in_file_order(self):
+        img = self._img()
+        regions = img.all_scan_regions()
+        self.assertEqual(
+            [rva for rva, _ in regions], [img.sections[0].va, img.sections[1].va]
+        )
+        self.assertEqual(regions[1][1][:4], b"\xde\xad\xbe\xef")
+
+    def test_skips_sections_without_raw_data(self):
+        img = self._img()
+        self.assertEqual(len(img.all_scan_regions()), 2)
+        self.assertEqual(len(img.exec_scan_regions()), 1)
+
+
 if __name__ == "__main__":
     unittest.main()

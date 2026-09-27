@@ -14,6 +14,11 @@ TESTDATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "testdat
 REAL_DLL = os.path.join(TESTDATA_DIR, "wtsapi32.dll")
 
 
+def _read_file(path):
+    with open(path, "rb") as f:
+        return f.read()
+
+
 class TestCliRealDll(unittest.TestCase):
     def run_cli_variant(self, sig_file):
         out_path = os.path.join(self.tmpdir.name, "out.pdb")
@@ -39,7 +44,12 @@ class TestCliRealDll(unittest.TestCase):
     def setUp(self):
         self.tmpdir = tempfile.TemporaryDirectory()
         with open(os.path.join(TESTDATA_DIR, "expected.json"), "r", encoding="utf-8") as f:
-            self.expected = json.load(f)["functions"]
+            data = json.load(f)
+        self.expected = data["functions"] + data["labels"]
+        self.expected_kinds = {
+            **{f["name"]: "function" for f in data["functions"]},
+            **{l["name"]: "label" for l in data["labels"]},
+        }
 
     def tearDown(self):
         self.tmpdir.cleanup()
@@ -48,17 +58,22 @@ class TestCliRealDll(unittest.TestCase):
         proc, out_path = self.run_cli_variant("signatures.jsonc")
         self.assertEqual(proc.returncode, 0, proc.stderr)
         self.assertTrue(os.path.exists(out_path))
-        streams = parse_msf(open(out_path, "rb").read())
+        streams = parse_msf(_read_file(out_path))
         records = {
-            r["name"]: (r["segment"], r["off"]) for r in parse_records(streams[7])
+            r["name"]: (r["segment"], r["off"], r["flags"])
+            for r in parse_records(streams[7])
         }
         import pe as pe_pkg
 
-        img = pe_pkg.PEImage.parse(open(REAL_DLL, "rb").read())
+        img = pe_pkg.PEImage.parse(_read_file(REAL_DLL))
         self.assertEqual(set(records), {f["name"] for f in self.expected})
-        for func in self.expected:
-            segment, offset = records[func["name"]]
-            self.assertEqual(img.sections[segment - 1].va + offset, func["rva"])
+        for entry in self.expected:
+            segment, offset, flags = records[entry["name"]]
+            self.assertEqual(img.sections[segment - 1].va + offset, entry["rva"])
+            self.assertEqual(
+                flags,
+                0x2 if self.expected_kinds[entry["name"]] == "function" else 0x0,
+            )
 
     def test_not_found_variant_reports_and_refuses(self):
         proc, out_path = self.run_cli_variant("signatures.not_found.jsonc")
@@ -91,7 +106,7 @@ class TestCliRealDll(unittest.TestCase):
         self.assertIn("skipped", proc.stdout)
         self.assertIn("kernel32.dll", proc.stdout)
         self.assertTrue(os.path.exists(out_path))
-        streams = parse_msf(open(out_path, "rb").read())
+        streams = parse_msf(_read_file(out_path))
         records = parse_records(streams[7])
         self.assertEqual(len(records), 2)
 
@@ -140,29 +155,61 @@ class TestCliEndToEnd(unittest.TestCase):
         proc, pdb_path = self.run_cli(
             json.dumps(
                 {
-                    "signatures": {
+                    "functions": {
                         "FuncA": {"library": "server.dll", "windows": "48 8B C4 55"},
                         "FuncB": {"library": "server.dll", "windows": "40 53 48"},
-                    }
+                    },
+                    "labels": {},
                 }
             )
         )
         self.assertEqual(proc.returncode, 0, proc.stderr)
         self.assertTrue(os.path.exists(pdb_path))
-        streams = parse_msf(open(pdb_path, "rb").read())
+        streams = parse_msf(_read_file(pdb_path))
         records = parse_records(streams[7])
         self.assertEqual(sorted(r["name"] for r in records), ["FuncA", "FuncB"])
+        self.assertTrue(all(r["flags"] == 0x2 for r in records))
+
+    def test_label_resolves_as_data_public(self):
+        spec = [
+            {"name": ".text", "vsize": 0x40, "raw": b"\x00" * 0x40, "exec": True},
+            {
+                "name": ".rdata",
+                "vsize": 0x40,
+                "raw": b"\x00" * 0x10 + b"\x11\x22\x33\x44" + b"\x00" * 0x2C,
+                "exec": False,
+            },
+        ]
+        proc, pdb_path = self.run_cli(
+            json.dumps(
+                {
+                    "functions": {},
+                    "labels": {
+                        "g_Thing": {"library": "server.dll", "windows": "11 22 33 44"}
+                    },
+                }
+            ),
+            sections_spec=spec,
+        )
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertIn("1 labels", proc.stdout)
+        streams = parse_msf(_read_file(pdb_path))
+        records = {r["name"]: r for r in parse_records(streams[7])}
+        self.assertEqual(records["g_Thing"]["flags"], 0x0)
 
     def test_reuses_dll_guid_and_age(self):
         guid = uuid.UUID("11112222-3333-4444-5555-666677778888")
         proc, pdb_path = self.run_cli(
             json.dumps(
-                {"signatures": {"FuncA": {"library": "server.dll", "windows": "48 8B C4 55"}}}
+                {
+                    "functions": {"FuncA": {"library": "server.dll", "windows": "48 8B C4 55"}},
+                    "labels": {},
+                }
             ),
             debug_cv={"guid": guid, "age": 9},
         )
         self.assertEqual(proc.returncode, 0, proc.stderr)
-        streams = parse_msf(open(pdb_path, "rb").read())
+        streams = parse_msf(_read_file(pdb_path))
         info = streams[1]
         self.assertEqual(info[12:28], guid.bytes_le)
         (age,) = struct.unpack_from("<I", info, 8)
@@ -171,7 +218,10 @@ class TestCliEndToEnd(unittest.TestCase):
     def test_not_found_fails_without_pdb(self):
         proc, pdb_path = self.run_cli(
             json.dumps(
-                {"signatures": {"Ghost": {"library": "server.dll", "windows": "11 22 33 44"}}}
+                {
+                    "functions": {"Ghost": {"library": "server.dll", "windows": "11 22 33 44"}},
+                    "labels": {},
+                }
             )
         )
         self.assertEqual(proc.returncode, 2)
@@ -194,7 +244,10 @@ class TestCliEndToEnd(unittest.TestCase):
         ]
         proc, pdb_path = self.run_cli(
             json.dumps(
-                {"signatures": {"Twin": {"library": "server.dll", "windows": "48 8B C4 55 00"}}}
+                {
+                    "functions": {"Twin": {"library": "server.dll", "windows": "48 8B C4 55 00"}},
+                    "labels": {},
+                }
             ),
             sections_spec=spec,
         )
@@ -206,10 +259,11 @@ class TestCliEndToEnd(unittest.TestCase):
         proc, pdb_path = self.run_cli(
             json.dumps(
                 {
-                    "signatures": {
+                    "functions": {
                         "A": {"library": "server.dll", "windows": "48 8B C4 55"},
                         "B": {"library": "server.dll", "windows": "48 8B C4"},
-                    }
+                    },
+                    "labels": {},
                 }
             )
         )
@@ -221,10 +275,11 @@ class TestCliEndToEnd(unittest.TestCase):
         proc, pdb_path = self.run_cli(
             json.dumps(
                 {
-                    "signatures": {
+                    "functions": {
                         "Elsewhere": {"library": "engine2.dll", "windows": "11 22 33 44"},
                         "FuncA": {"library": "server.dll", "windows": "48 8B C4 55"},
-                    }
+                    },
+                    "labels": {},
                 }
             )
         )
@@ -241,7 +296,10 @@ class TestCliEndToEnd(unittest.TestCase):
     def test_bad_pattern_fails(self):
         proc, pdb_path = self.run_cli(
             json.dumps(
-                {"signatures": {"Bad": {"library": "server.dll", "windows": "48 ZZ"}}}
+                {
+                    "functions": {"Bad": {"library": "server.dll", "windows": "48 ZZ"}},
+                    "labels": {},
+                }
             )
         )
         self.assertEqual(proc.returncode, 2)

@@ -58,7 +58,7 @@ def main(argv: Iterable[str] | None = None) -> int:
         guid, age = uuid_mod.uuid4(), 1
 
     pdb_symbols = []
-    for name, rva in res.symbols:
+    for name, rva, kind in res.symbols:
         seg_off = pe.rva_to_section(image, rva)
         if seg_off is None:
             print(
@@ -66,7 +66,9 @@ def main(argv: Iterable[str] | None = None) -> int:
                 file=sys.stderr,
             )
             return 1
-        pdb_symbols.append((name, seg_off[0], seg_off[1]))
+        segment, offset = seg_off
+        flags = pdb_pkg.PUBSYM_FUNCTION if kind == "function" else pdb_pkg.PUBSYM_DATA
+        pdb_symbols.append((name, segment, offset, flags))
 
     blob = pdb_pkg.build_pdb(
         [
@@ -87,7 +89,9 @@ def main(argv: Iterable[str] | None = None) -> int:
         print(f"error: cannot write {out_path}: {e}", file=sys.stderr)
         return 1
 
-    print(f"wrote {len(res.symbols)} symbols to {out_path}")
+    n_functions = sum(1 for _n, _r, k in res.symbols if k == "function")
+    n_labels = len(res.symbols) - n_functions
+    print(f"wrote {n_functions} functions and {n_labels} labels to {out_path}")
     return 0
 
 

@@ -164,5 +164,27 @@
       "name": "WTSVirtualChannelOpenEx",
       "rva": 22128
     }
+  ],
+  "labels": [
+    {
+      "name": "??_7?$__func@V<lambda_8db0ce862824541f40dfb767113f1e28>@@$$A6A_NPEAX_K01I@Z@__function@wistd@@6B@",
+      "rva": 114712
+    },
+    {
+      "name": "??_7?$__base@$$A6A_NPEAX_K01I@Z@__function@wistd@@6B@",
+      "rva": 114752
+    },
+    {
+      "name": "??_7CloudAPHelper@@6BCTSObject@@@",
+      "rva": 114800
+    },
+    {
+      "name": "??_7CloudAPHelper@@6BINonDelegatingUnknown@@@",
+      "rva": 114840
+    },
+    {
+      "name": "??_7CloudAPHelper@@6B@",
+      "rva": 114872
+    }
   ]
 }

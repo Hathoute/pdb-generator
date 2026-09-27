@@ -1,6 +1,15 @@
+import json
+import os
+import tempfile
 import unittest
 
-from signatures import PatternError, compile_pattern, find_matches
+from signatures import (
+    PatternError,
+    SignatureFileError,
+    compile_pattern,
+    find_matches,
+    load_signatures,
+)
 
 
 class TestCompilePattern(unittest.TestCase):
@@ -80,6 +89,74 @@ class TestFindMatches(unittest.TestCase):
     def test_overlapping_match_not_reported_twice(self):
         pat = compile_pattern("AA AA")
         self.assertEqual(find_matches(b"\xaa\xaa\xaa", pat), [0, 1])
+
+
+class TestLoadSignatures(unittest.TestCase):
+    def _write(self, text):
+        fd, path = tempfile.mkstemp(suffix=".jsonc")
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            f.write(text)
+        self.addCleanup(os.remove, path)
+        return path
+
+    def _write_json(self, root):
+        return self._write(json.dumps(root))
+
+    def test_parses_functions_and_labels(self):
+        path = self._write_json(
+            {
+                "functions": {
+                    "Fn": {"library": "server.dll", "windows": "48 89 5C"}
+                },
+                "labels": {
+                    "Lbl": {"library": "server.dll", "windows": "AA BB CC"}
+                },
+            }
+        )
+        sigs = load_signatures(path)
+        self.assertEqual(list(sigs.functions), ["Fn"])
+        self.assertEqual(list(sigs.labels), ["Lbl"])
+        self.assertEqual(sigs.functions["Fn"]["windows"], "48 89 5C")
+
+    def test_empty_groups_ok(self):
+        path = self._write_json({"functions": {}, "labels": {}})
+        sigs = load_signatures(path)
+        self.assertEqual(sigs.functions, {})
+        self.assertEqual(sigs.labels, {})
+
+    def test_missing_functions_root_raises(self):
+        path = self._write_json({"labels": {}})
+        with self.assertRaises(SignatureFileError) as cm:
+            load_signatures(path)
+        self.assertIn("functions", str(cm.exception))
+
+    def test_missing_labels_root_raises(self):
+        path = self._write_json({"functions": {}})
+        with self.assertRaises(SignatureFileError) as cm:
+            load_signatures(path)
+        self.assertIn("labels", str(cm.exception))
+
+    def test_legacy_signatures_root_rejected(self):
+        path = self._write_json({"signatures": {"A": {"windows": "48 8B"}}})
+        with self.assertRaises(SignatureFileError):
+            load_signatures(path)
+
+    def test_non_object_root_raises(self):
+        path = self._write("[]")
+        with self.assertRaises(SignatureFileError):
+            load_signatures(path)
+
+    def test_function_entry_without_windows_raises(self):
+        path = self._write_json({"functions": {"A": {"library": "x.dll"}}, "labels": {}})
+        with self.assertRaises(SignatureFileError) as cm:
+            load_signatures(path)
+        self.assertIn("A", str(cm.exception))
+
+    def test_label_entry_without_windows_raises(self):
+        path = self._write_json({"functions": {}, "labels": {"L": {"library": "x.dll"}}})
+        with self.assertRaises(SignatureFileError) as cm:
+            load_signatures(path)
+        self.assertIn("L", str(cm.exception))
 
 
 if __name__ == "__main__":

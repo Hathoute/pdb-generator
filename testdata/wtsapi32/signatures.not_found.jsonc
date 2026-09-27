@@ -1,5 +1,5 @@
 {
-  "signatures": {
+  "functions": {
     "??$Write@U?$_tlgWrapSz@D@@U?$_tlgWrapperByVal@$03@@@?$_tlgWriteTemplate@$$A6AJPEBU_tlgProvider_t@@PEBXPEBU_GUID@@2IPEAU_EVENT_DATA_DESCRIPTOR@@@Z$1?_tlgWriteTransfer_EventWriteTransfer@@YAJ0122I3@ZPEBU2@PEBU2@@@SAJPEBU_tlgProvider_t@@PEBXPEBU_GUID@@2AEBU?$_tlgWrapSz@D@@AEBU?$_tlgWrapperByVal@$03@@@Z": {
       "library": "wtsapi32.dll",
       "windows": "48 81 EC 88 00 00 00 48 8B 05 6A 33 02 00 48 33 C4 48 89 44 24 70 48 8B 84 24 B8 00 00 00 45 33 C0 48 89 44 24 60 41 B9 04 00 00 00 48 8B 84 24"
@@ -12,5 +12,6 @@
       "library": "wtsapi32.dll",
       "windows": "DE AD BE EF EF DE AD BE"
     }
-  }
+  },
+  "labels": {}
 }

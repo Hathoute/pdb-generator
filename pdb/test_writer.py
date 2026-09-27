@@ -6,6 +6,7 @@ from pdb import (
     DBI_V70,
     GSI_VERHDR,
     IMPL_VC70,
+    PUBSYM_DATA,
     PUBSYM_FUNCTION,
     S_PUB32,
     TPI_V80,
@@ -196,6 +197,25 @@ class TestBuildPdb(unittest.TestCase):
         self.assertEqual(hr_size, 0)
         self.assertEqual(num_buckets, 32768)
         self.assertEqual(gs[16:], b"\x00" * (len(gs) - 16))
+
+    def test_data_public_flag_emitted(self):
+        sections = [SectionEntry(characteristics=0x60000020, vsize=0x100)]
+        section_headers = bytes(range(256))[:40]
+        data = build_pdb(
+            sections,
+            section_headers,
+            [
+                ("Fn", 1, 0x10, PUBSYM_FUNCTION),
+                ("Lbl", 1, 0x20, PUBSYM_DATA),
+            ],
+            guid=uuid.UUID("aaaabbbb-cccc-dddd-eeee-ffff00001111"),
+            age=3,
+            timestamp=123456,
+        )
+        streams = parse_msf(data)
+        records = {r["name"]: r for r in parse_records(streams[7])}
+        self.assertEqual(records["Fn"]["flags"], PUBSYM_FUNCTION)
+        self.assertEqual(records["Lbl"]["flags"], PUBSYM_DATA)
 
     def test_records_stream_sorted_by_name(self):
         _, _, _, _, data = self._build()

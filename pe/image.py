@@ -105,6 +105,13 @@ class PEImage:
             if sec.characteristics & IMAGE_SCN_MEM_EXECUTE and sec.raw_size > 0
         ]
 
+    def all_scan_regions(self) -> list[tuple[int, bytes]]:
+        return [
+            (sec.va, self.data[sec.raw_ptr : sec.raw_ptr + sec.raw_size])
+            for sec in self.sections
+            if sec.raw_size > 0
+        ]
+
     def section_headers_blob(self) -> bytes:
         return self.data[
             self.section_table_off : self.section_table_off + 40 * len(self.sections)

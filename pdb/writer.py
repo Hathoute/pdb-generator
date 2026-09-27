@@ -8,6 +8,7 @@ from .msf import MsfBuilder
 
 
 PUBSYM_FUNCTION = 0x2
+PUBSYM_DATA = 0x0
 S_PUB32 = 0x110E
 IPHR_HASH = 0x3FFFF
 GSI_VERHDR = (0x0EFFE0000 + 19990810) & 0xFFFFFFFF
@@ -150,21 +151,24 @@ def _build_empty_gsi_stream() -> bytes:
 def build_pdb(
     sections: list[SectionEntry],
     section_headers: bytes,
-    symbols: list[tuple[str, int, int]],
+    symbols: list[tuple],
     guid: uuid_mod.UUID,
     age: int,
     timestamp: int,
 ) -> bytes:
-    pubs: list[dict] = [
-        {"name": name, "segment": segment, "offset": offset}
-        for name, segment, offset in symbols
-    ]
+    pubs: list[dict] = []
+    for sym in symbols:
+        name, segment, offset, *rest = sym
+        flags = rest[0] if rest else PUBSYM_FUNCTION
+        pubs.append(
+            {"name": name, "segment": segment, "offset": offset, "flags": flags}
+        )
 
     pubs.sort(key=lambda p: p["name"].encode("utf-8"))
     record_stream = bytearray()
     sym_off = 0
     for p in pubs:
-        rec = encode_pub32(p["name"], p["offset"], p["segment"])
+        rec = encode_pub32(p["name"], p["offset"], p["segment"], p["flags"])
         p["sym_off"] = sym_off
         record_stream += rec
         sym_off += len(rec)
