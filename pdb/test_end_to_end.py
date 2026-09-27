@@ -9,15 +9,13 @@ from pdb import SectionEntry, build_pdb
 from pdb.testutil import parse_msf, parse_records
 
 
-TESTDATA_DIR = os.path.join(os.path.dirname(__file__), "testdata", "wtsapi32")
+TESTDATA_DIR = os.path.normpath(
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "testdata", "wtsapi32")
+)
 DLL_PATH = os.path.join(TESTDATA_DIR, "wtsapi32.dll")
 SIGS_PATH = os.path.join(TESTDATA_DIR, "signatures.jsonc")
 EXPECTED_PATH = os.path.join(TESTDATA_DIR, "expected.json")
 
-
-@unittest.skipUnless(
-    os.path.isdir(TESTDATA_DIR), "fixtures not generated (see tools/fetch_testdata.py)"
-)
 class TestGeneratedPdbAgainstRealBinary(unittest.TestCase):
     @classmethod
     def setUpClass(cls):

@@ -10,6 +10,91 @@ import uuid
 from pdb.testutil import parse_msf, parse_records
 from pe.testutil import build_pe
 
+TESTDATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "testdata", "wtsapi32")
+REAL_DLL = os.path.join(TESTDATA_DIR, "wtsapi32.dll")
+
+
+class TestCliRealDll(unittest.TestCase):
+    def run_cli_variant(self, sig_file):
+        out_path = os.path.join(self.tmpdir.name, "out.pdb")
+        return (
+            subprocess.run(
+                [
+                    sys.executable,
+                    os.path.join(os.path.dirname(__file__), "make_pdb.py"),
+                    "--dll",
+                    REAL_DLL,
+                    "--sig",
+                    os.path.join(TESTDATA_DIR, sig_file),
+                    "--out",
+                    out_path,
+                ],
+                capture_output=True,
+                text=True,
+                timeout=120,
+            ),
+            out_path,
+        )
+
+    def setUp(self):
+        self.tmpdir = tempfile.TemporaryDirectory()
+        with open(os.path.join(TESTDATA_DIR, "expected.json"), "r", encoding="utf-8") as f:
+            self.expected = json.load(f)["functions"]
+
+    def tearDown(self):
+        self.tmpdir.cleanup()
+
+    def test_full_signature_set_writes_all_symbols(self):
+        proc, out_path = self.run_cli_variant("signatures.jsonc")
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertTrue(os.path.exists(out_path))
+        streams = parse_msf(open(out_path, "rb").read())
+        records = {
+            r["name"]: (r["segment"], r["off"]) for r in parse_records(streams[7])
+        }
+        import pe as pe_pkg
+
+        img = pe_pkg.PEImage.parse(open(REAL_DLL, "rb").read())
+        self.assertEqual(set(records), {f["name"] for f in self.expected})
+        for func in self.expected:
+            segment, offset = records[func["name"]]
+            self.assertEqual(img.sections[segment - 1].va + offset, func["rva"])
+
+    def test_not_found_variant_reports_and_refuses(self):
+        proc, out_path = self.run_cli_variant("signatures.not_found.jsonc")
+        self.assertEqual(proc.returncode, 2)
+        self.assertIn("DefinitelyNotARealFunction", proc.stderr)
+        self.assertIn("not_found", proc.stderr)
+        self.assertFalse(os.path.exists(out_path))
+
+    def test_ambiguous_variant_reports_and_refuses(self):
+        proc, out_path = self.run_cli_variant("signatures.ambiguous.jsonc")
+        self.assertEqual(proc.returncode, 2)
+        self.assertIn("ambiguous", proc.stderr)
+        self.assertFalse(os.path.exists(out_path))
+
+    def test_clash_variant_reports_and_refuses(self):
+        proc, out_path = self.run_cli_variant("signatures.clash.jsonc")
+        self.assertEqual(proc.returncode, 2)
+        self.assertIn("clash", proc.stderr)
+        self.assertFalse(os.path.exists(out_path))
+
+    def test_bad_pattern_variant_reports_and_refuses(self):
+        proc, out_path = self.run_cli_variant("signatures.bad_pattern.jsonc")
+        self.assertEqual(proc.returncode, 2)
+        self.assertIn("bad_pattern", proc.stderr)
+        self.assertFalse(os.path.exists(out_path))
+
+    def test_other_library_entries_skipped_but_pdb_written(self):
+        proc, out_path = self.run_cli_variant("signatures.other_lib.jsonc")
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertIn("skipped", proc.stdout)
+        self.assertIn("kernel32.dll", proc.stdout)
+        self.assertTrue(os.path.exists(out_path))
+        streams = parse_msf(open(out_path, "rb").read())
+        records = parse_records(streams[7])
+        self.assertEqual(len(records), 2)
+
 
 class TestCliEndToEnd(unittest.TestCase):
     def run_cli(self, sigs_text, sections_spec=None, debug_cv=None):

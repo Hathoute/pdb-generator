@@ -1,0 +1,20 @@
+{
+  "signatures": {
+    "??$Write@U?$_tlgWrapSz@D@@U?$_tlgWrapperByVal@$03@@@?$_tlgWriteTemplate@$$A6AJPEBU_tlgProvider_t@@PEBXPEBU_GUID@@2IPEAU_EVENT_DATA_DESCRIPTOR@@@Z$1?_tlgWriteTransfer_EventWriteTransfer@@YAJ0122I3@ZPEBU2@PEBU2@@@SAJPEBU_tlgProvider_t@@PEBXPEBU_GUID@@2AEBU?$_tlgWrapSz@D@@AEBU?$_tlgWrapperByVal@$03@@@Z": {
+      "library": "wtsapi32.dll",
+      "windows": "48 81 EC 88 00 00 00 48 8B 05 6A 33 02 00 48 33 C4 48 89 44 24 70 48 8B 84 24 B8 00 00 00 45 33 C0 48 89 44 24 60 41 B9 04 00 00 00 48 8B 84 24"
+    },
+    "??$Write@U?$_tlgWrapSz@D@@U?$_tlgWrapperByVal@$03@@U1@U2@U1@@?$_tlgWriteTemplate@$$A6AJPEBU_tlgProvider_t@@PEBXPEBU_GUID@@2IPEAU_EVENT_DATA_DESCRIPTOR@@@Z$1?_tlgWriteTransfer_EventWriteTransfer@@YAJ0122I3@ZPEBU2@PEBU2@@@SAJPEBU_tlgProvider_t@@PEBXPEBU_GUID@@2AEBU?$_tlgWrapSz@D@@AEBU?$_tlgWrapperByVal@$03@@343@Z": {
+      "library": "wtsapi32.dll",
+      "windows": "40 55 48 8D 6C 24 D1 48 81 EC B0 00 00 00 48 8B 05 BB 32 02 00 48 33 C4 48 89 45 1F 48 8B 45 7F 4C 8D 1D D1 C0 01 00 48 83 C9 FF 45 33 C9 4C 8B"
+    },
+    "FakeKernel32Func": {
+      "library": "kernel32.dll",
+      "windows": "48 89 5C 24 08 57"
+    },
+    "FakeEngine2Func": {
+      "library": "engine2.dll",
+      "windows": "40 53 48 83 EC 20"
+    }
+  }
+}
