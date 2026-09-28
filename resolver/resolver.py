@@ -93,28 +93,38 @@ def _resolve_rip_labels(
             errors.append(
                 SignatureError(name, "not_found", "no anchor match in executable sections")
             )
-        elif len(matches) > 1:
-            locs = ", ".join(f"0x{rva + m:X}" for rva, _b, m in matches)
-            errors.append(
-                SignatureError(name, "ambiguous", f"{len(matches)} matches: {locs}")
-            )
-        else:
-            rva, blob, m = matches[0]
+            continue
+        targets: dict[int, int] = {}
+        for rva, blob, m in matches:
             disp = int.from_bytes(
                 blob[m + rip_offset : m + rip_offset + 4], "little", signed=True
             )
             label_rva = rva + m + rip_offset + 4 + disp
-            if pe.rva_to_section(image, label_rva) is None:
-                errors.append(
-                    SignatureError(
-                        name,
-                        "bad_ref",
-                        f"anchor at 0x{rva + m:X} decodes to RVA 0x{label_rva:X}, "
-                        f"outside all sections",
-                    )
+            targets[label_rva] = targets.get(label_rva, 0) + 1
+        if len(targets) > 1:
+            locs = ", ".join(f"0x{t:X}" for t in sorted(targets))
+            errors.append(
+                SignatureError(
+                    name,
+                    "ambiguous",
+                    f"{len(matches)} anchor matches decode to "
+                    f"{len(targets)} RVAs: {locs}",
                 )
-            else:
-                symbols.append((name, label_rva, "label"))
+            )
+            continue
+        label_rva = next(iter(targets))
+        first_rva, _first_blob, first_m = matches[0]
+        if pe.rva_to_section(image, label_rva) is None:
+            errors.append(
+                SignatureError(
+                    name,
+                    "bad_ref",
+                    f"anchor at 0x{first_rva + first_m:X} decodes to RVA "
+                    f"0x{label_rva:X}, outside all sections",
+                )
+            )
+        else:
+            symbols.append((name, label_rva, "label"))
 
 
 def resolve_signatures(

@@ -229,8 +229,34 @@ class TestResolveLabelsRipMode(unittest.TestCase):
         )
         res = resolve_signatures(sigs, img, "server.dll")
         self.assertEqual(res.errors[0].kind, "ambiguous")
-        self.assertIn("0x1010", res.errors[0].detail)
-        self.assertIn("0x1029", res.errors[0].detail)
+        # lea at 0x1010 ends 0x1017 -> target 0x1017 + 0x10 = 0x1027
+        # lea at 0x1029 ends 0x1030 -> target 0x1030 + 0x20 = 0x1050
+        self.assertIn("0x1027", res.errors[0].detail)
+        self.assertIn("0x1050", res.errors[0].detail)
+
+    def test_rip_anchor_multiple_matches_same_target_not_ambiguous(self):
+        # second anchor at 0x1029 (ends 0x1030) gets a compensating disp so both
+        # decode to the same target 0x1027
+        spec = [
+            {
+                "name": ".text",
+                "vsize": 0x60,
+                "raw": b"\x00" * 0x10
+                + _lea_rdata(0x10)
+                + b"\x00" * 0x10
+                + _lea_rdata(0x1027 - 0x1030)
+                + b"\x00" * 0x30,
+                "exec": True,
+            },
+            {"name": ".rdata", "vsize": 0x40, "raw": b"\x00" * 0x40, "exec": False},
+        ]
+        img = pe.PEImage.parse(build_pe(spec))
+        sigs = _sigs(
+            labels={"g_One": _lbl("48 8D 05 ?? ?? ?? ??", mode="rip", rip_offset=3)}
+        )
+        res = resolve_signatures(sigs, img, "server.dll")
+        self.assertEqual(res.errors, [])
+        self.assertEqual(res.symbols, [("g_One", 0x1027, "label")])
 
     def test_rip_offset_out_of_range_is_bad_pattern(self):
         img = make_image()
