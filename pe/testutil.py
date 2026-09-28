@@ -59,7 +59,8 @@ def build_pe(sections, debug_cv=None):
         encoded = name.encode()[:8]
         hdr[: len(encoded)] = encoded
         raw_len = debug_raw_len if raw is None else len(raw)
-        struct.pack_into("<IIII", hdr, 8, raw_len, sec_va, raw_len, sec_raw_off)
+        vsize_field = debug_raw_len if raw is None else max(sec["vsize"], raw_len)
+        struct.pack_into("<IIII", hdr, 8, vsize_field, sec_va, raw_len, sec_raw_off)
         chars = (0x60000020 if exec_flag else 0x40000040) | 0x40
         struct.pack_into("<I", hdr, 36, chars)
         st = section_table_off + 40 * i

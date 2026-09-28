@@ -168,23 +168,28 @@
   "labels": [
     {
       "name": "??_7?$__func@V<lambda_8db0ce862824541f40dfb767113f1e28>@@$$A6A_NPEAX_K01I@Z@__function@wistd@@6B@",
-      "rva": 114712
+      "rva": 114712,
+      "mode": "pattern"
     },
     {
       "name": "??_7?$__base@$$A6A_NPEAX_K01I@Z@__function@wistd@@6B@",
-      "rva": 114752
+      "rva": 114752,
+      "mode": "pattern"
     },
     {
       "name": "??_7CloudAPHelper@@6BCTSObject@@@",
-      "rva": 114800
+      "rva": 114800,
+      "mode": "rip"
     },
     {
       "name": "??_7CloudAPHelper@@6BINonDelegatingUnknown@@@",
-      "rva": 114840
+      "rva": 114840,
+      "mode": "rip"
     },
     {
       "name": "??_7CloudAPHelper@@6B@",
-      "rva": 114872
+      "rva": 114872,
+      "mode": "rip"
     }
   ]
 }

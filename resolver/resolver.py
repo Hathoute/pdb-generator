@@ -55,6 +55,68 @@ def _resolve_group(
             symbols.append((name, matches[0], kind))
 
 
+def _resolve_rip_labels(
+    group: dict,
+    regions: list[tuple[int, bytes]],
+    target_library: str,
+    image: pe.PEImage,
+    symbols: list[tuple[str, int, str]],
+    errors: list[SignatureError],
+    skipped: list[tuple[str, str]],
+) -> None:
+    for name, entry in group.items():
+        lib = entry.get("library", target_library)
+        if lib != target_library:
+            skipped.append((name, lib))
+            continue
+        try:
+            pat = signatures.compile_pattern(entry["windows"])
+        except signatures.PatternError as e:
+            errors.append(SignatureError(name, "bad_pattern", str(e)))
+            continue
+        rip_offset = entry["rip_offset"]
+        if rip_offset < 0 or rip_offset + 4 > pat.size:
+            errors.append(
+                SignatureError(
+                    name,
+                    "bad_pattern",
+                    f"rip_offset {rip_offset} out of range for pattern of "
+                    f"{pat.size} bytes",
+                )
+            )
+            continue
+        matches: list[tuple[int, bytes, int]] = []
+        for rva, blob in regions:
+            for m in signatures.find_matches(blob, pat):
+                matches.append((rva, blob, m))
+        if not matches:
+            errors.append(
+                SignatureError(name, "not_found", "no anchor match in executable sections")
+            )
+        elif len(matches) > 1:
+            locs = ", ".join(f"0x{rva + m:X}" for rva, _b, m in matches)
+            errors.append(
+                SignatureError(name, "ambiguous", f"{len(matches)} matches: {locs}")
+            )
+        else:
+            rva, blob, m = matches[0]
+            disp = int.from_bytes(
+                blob[m + rip_offset : m + rip_offset + 4], "little", signed=True
+            )
+            label_rva = rva + m + rip_offset + 4 + disp
+            if pe.rva_to_section(image, label_rva) is None:
+                errors.append(
+                    SignatureError(
+                        name,
+                        "bad_ref",
+                        f"anchor at 0x{rva + m:X} decodes to RVA 0x{label_rva:X}, "
+                        f"outside all sections",
+                    )
+                )
+            else:
+                symbols.append((name, label_rva, "label"))
+
+
 def resolve_signatures(
     sigs: signatures.SignatureFile, image: pe.PEImage, target_library: str
 ) -> Resolution:
@@ -62,9 +124,11 @@ def resolve_signatures(
     errors: list[SignatureError] = []
     skipped: list[tuple[str, str]] = []
 
+    exec_regions = image.exec_scan_regions()
+
     _resolve_group(
         sigs.functions,
-        image.exec_scan_regions(),
+        exec_regions,
         target_library,
         "executable sections",
         "function",
@@ -72,8 +136,14 @@ def resolve_signatures(
         errors,
         skipped,
     )
+
+    pattern_labels = {
+        n: e for n, e in sigs.labels.items() if e.get("mode") == "pattern"
+    }
+    rip_labels = {n: e for n, e in sigs.labels.items() if e.get("mode") == "rip"}
+
     _resolve_group(
-        sigs.labels,
+        pattern_labels,
         image.all_scan_regions(),
         target_library,
         "all sections",
@@ -81,6 +151,9 @@ def resolve_signatures(
         symbols,
         errors,
         skipped,
+    )
+    _resolve_rip_labels(
+        rip_labels, exec_regions, target_library, image, symbols, errors, skipped
     )
 
     dropped: set[str] = set()

@@ -185,7 +185,11 @@ class TestCliEndToEnd(unittest.TestCase):
                 {
                     "functions": {},
                     "labels": {
-                        "g_Thing": {"library": "server.dll", "windows": "11 22 33 44"}
+                        "g_Thing": {
+                            "library": "server.dll",
+                            "windows": "11 22 33 44",
+                            "mode": "pattern",
+                        }
                     },
                 }
             ),
@@ -196,6 +200,48 @@ class TestCliEndToEnd(unittest.TestCase):
         streams = parse_msf(_read_file(pdb_path))
         records = {r["name"]: r for r in parse_records(streams[7])}
         self.assertEqual(records["g_Thing"]["flags"], 0x0)
+
+    def test_rip_label_resolves_via_anchor_decode(self):
+        # lea rax, [rip+disp] at .text+0x10 decoding to .rdata+0x10 (0x2010)
+        disp = 0x2010 - (0x1010 + 7)
+        lea = b"\x48\x8d\x05" + disp.to_bytes(4, "little", signed=True) + b"\x90\x90"
+        spec = [
+            {
+                "name": ".text",
+                "vsize": 0x40,
+                "raw": b"\x00" * 0x10 + lea + b"\x00" * 0x27,
+                "exec": True,
+            },
+            {
+                "name": ".rdata",
+                "vsize": 0x40,
+                "raw": b"\x11\x22\x33\x44" + b"\x00" * 0x3C,
+                "exec": False,
+            },
+        ]
+        proc, pdb_path = self.run_cli(
+            json.dumps(
+                {
+                    "functions": {},
+                    "labels": {
+                        "g_pThing": {
+                            "library": "server.dll",
+                            "windows": "48 8D 05 ?? ?? ?? ?? 90 90",
+                            "mode": "rip",
+                            "rip_offset": 3,
+                        }
+                    },
+                }
+            ),
+            sections_spec=spec,
+        )
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertIn("1 labels", proc.stdout)
+        streams = parse_msf(_read_file(pdb_path))
+        records = {r["name"]: r for r in parse_records(streams[7])}
+        self.assertEqual(records["g_pThing"]["flags"], 0x0)
+        self.assertEqual(records["g_pThing"]["segment"], 2)
+        self.assertEqual(records["g_pThing"]["off"], 0x10)
 
     def test_reuses_dll_guid_and_age(self):
         guid = uuid.UUID("11112222-3333-4444-5555-666677778888")

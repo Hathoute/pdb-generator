@@ -109,7 +109,11 @@ class TestLoadSignatures(unittest.TestCase):
                     "Fn": {"library": "server.dll", "windows": "48 89 5C"}
                 },
                 "labels": {
-                    "Lbl": {"library": "server.dll", "windows": "AA BB CC"}
+                    "Lbl": {
+                        "library": "server.dll",
+                        "windows": "AA BB CC",
+                        "mode": "pattern",
+                    }
                 },
             }
         )
@@ -157,6 +161,87 @@ class TestLoadSignatures(unittest.TestCase):
         with self.assertRaises(SignatureFileError) as cm:
             load_signatures(path)
         self.assertIn("L", str(cm.exception))
+
+    def test_label_entry_without_mode_raises(self):
+        path = self._write_json(
+            {"functions": {}, "labels": {"L": {"library": "x.dll", "windows": "AA BB"}}}
+        )
+        with self.assertRaises(SignatureFileError) as cm:
+            load_signatures(path)
+        self.assertIn("mode", str(cm.exception))
+
+    def test_label_entry_unknown_mode_raises(self):
+        path = self._write_json(
+            {
+                "functions": {},
+                "labels": {
+                    "L": {"library": "x.dll", "windows": "AA BB", "mode": "blink"}
+                },
+            }
+        )
+        with self.assertRaises(SignatureFileError) as cm:
+            load_signatures(path)
+        self.assertIn("mode", str(cm.exception))
+
+    def test_rip_label_requires_rip_offset(self):
+        path = self._write_json(
+            {
+                "functions": {},
+                "labels": {
+                    "L": {"library": "x.dll", "windows": "AA BB", "mode": "rip"}
+                },
+            }
+        )
+        with self.assertRaises(SignatureFileError) as cm:
+            load_signatures(path)
+        self.assertIn("rip_offset", str(cm.exception))
+
+    def test_pattern_label_rejects_rip_offset(self):
+        path = self._write_json(
+            {
+                "functions": {},
+                "labels": {
+                    "L": {
+                        "library": "x.dll",
+                        "windows": "AA BB",
+                        "mode": "pattern",
+                        "rip_offset": 2,
+                    }
+                },
+            }
+        )
+        with self.assertRaises(SignatureFileError):
+            load_signatures(path)
+
+    def test_rip_label_with_rip_offset_ok(self):
+        path = self._write_json(
+            {
+                "functions": {},
+                "labels": {
+                    "L": {
+                        "library": "x.dll",
+                        "windows": "48 8B 05 ?? ?? ?? ?? 90",
+                        "mode": "rip",
+                        "rip_offset": 3,
+                    }
+                },
+            }
+        )
+        sigs = load_signatures(path)
+        self.assertEqual(sigs.labels["L"]["rip_offset"], 3)
+
+    def test_function_entry_with_mode_rejected(self):
+        path = self._write_json(
+            {
+                "functions": {
+                    "F": {"library": "x.dll", "windows": "AA BB", "mode": "pattern"}
+                },
+                "labels": {},
+            }
+        )
+        with self.assertRaises(SignatureFileError) as cm:
+            load_signatures(path)
+        self.assertIn("F", str(cm.exception))
 
 
 if __name__ == "__main__":
